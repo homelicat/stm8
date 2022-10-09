@@ -1,0 +1,543 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.0.0 #11528 (Linux)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module main
+                                      6 	.optsdcc -mstm8
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _main
+                                     12 	.globl _tim2_update
+                                     13 	.globl _uart_send
+                                     14 	.globl _uart_recv
+                                     15 	.globl _uart_cfg
+                                     16 	.globl _gpio_get
+                                     17 	.globl _gpio_set
+                                     18 	.globl _gpio_cfg
+                                     19 	.globl _millis
+                                     20 	.globl _EXTI
+                                     21 	.globl _UART
+                                     22 	.globl _TIM4
+                                     23 	.globl _TIM2
+                                     24 	.globl _TIM1
+                                     25 	.globl _GPIO_D
+                                     26 	.globl _GPIO_C
+                                     27 	.globl _GPIO_B
+                                     28 	.globl _GPIO_A
+                                     29 	.globl _CLK
+                                     30 	.globl _RST
+                                     31 ;--------------------------------------------------------
+                                     32 ; ram data
+                                     33 ;--------------------------------------------------------
+                                     34 	.area DATA
+                                     35 ;--------------------------------------------------------
+                                     36 ; ram data
+                                     37 ;--------------------------------------------------------
+                                     38 	.area INITIALIZED
+      000000                         39 _RST::
+      000000                         40 	.ds 2
+      000002                         41 _CLK::
+      000002                         42 	.ds 2
+      000004                         43 _GPIO_A::
+      000004                         44 	.ds 2
+      000006                         45 _GPIO_B::
+      000006                         46 	.ds 2
+      000008                         47 _GPIO_C::
+      000008                         48 	.ds 2
+      00000A                         49 _GPIO_D::
+      00000A                         50 	.ds 2
+      00000C                         51 _TIM1::
+      00000C                         52 	.ds 2
+      00000E                         53 _TIM2::
+      00000E                         54 	.ds 2
+      000010                         55 _TIM4::
+      000010                         56 	.ds 2
+      000012                         57 _UART::
+      000012                         58 	.ds 2
+      000014                         59 _EXTI::
+      000014                         60 	.ds 2
+      000016                         61 _millis::
+      000016                         62 	.ds 2
+                                     63 ;--------------------------------------------------------
+                                     64 ; Stack segment in internal ram 
+                                     65 ;--------------------------------------------------------
+                                     66 	.area	SSEG
+      000000                         67 __start__stack:
+      000000                         68 	.ds	1
+                                     69 
+                                     70 ;--------------------------------------------------------
+                                     71 ; absolute external ram data
+                                     72 ;--------------------------------------------------------
+                                     73 	.area DABS (ABS)
+                                     74 
+                                     75 ; default segment ordering for linker
+                                     76 	.area HOME
+                                     77 	.area GSINIT
+                                     78 	.area GSFINAL
+                                     79 	.area CONST
+                                     80 	.area INITIALIZER
+                                     81 	.area CODE
+                                     82 
+                                     83 ;--------------------------------------------------------
+                                     84 ; interrupt vector 
+                                     85 ;--------------------------------------------------------
+                                     86 	.area HOME
+      000000                         87 __interrupt_vect:
+      000000 82v00u00u00             88 	int s_GSINIT ; reset
+      000004 82 00 00 00             89 	int 0x000000 ; trap
+      000008 82 00 00 00             90 	int 0x000000 ; int0
+      00000C 82 00 00 00             91 	int 0x000000 ; int1
+      000010 82 00 00 00             92 	int 0x000000 ; int2
+      000014 82 00 00 00             93 	int 0x000000 ; int3
+      000018 82 00 00 00             94 	int 0x000000 ; int4
+      00001C 82 00 00 00             95 	int 0x000000 ; int5
+      000020 82 00 00 00             96 	int 0x000000 ; int6
+      000024 82 00 00 00             97 	int 0x000000 ; int7
+      000028 82 00 00 00             98 	int 0x000000 ; int8
+      00002C 82 00 00 00             99 	int 0x000000 ; int9
+      000030 82 00 00 00            100 	int 0x000000 ; int10
+      000034 82 00 00 00            101 	int 0x000000 ; int11
+      000038 82 00 00 00            102 	int 0x000000 ; int12
+      00003C 82v00u01u3F            103 	int _tim2_update ; int13
+                                    104 ;--------------------------------------------------------
+                                    105 ; global & static initialisations
+                                    106 ;--------------------------------------------------------
+                                    107 	.area HOME
+                                    108 	.area GSINIT
+                                    109 	.area GSFINAL
+                                    110 	.area GSINIT
+      000000                        111 __sdcc_gs_init_startup:
+      000000                        112 __sdcc_init_data:
+                                    113 ; stm8_genXINIT() start
+      000000 AEr00r00         [ 2]  114 	ldw x, #l_DATA
+      000003 27 07            [ 1]  115 	jreq	00002$
+      000005                        116 00001$:
+      000005 72 4FuFFuFF      [ 1]  117 	clr (s_DATA - 1, x)
+      000009 5A               [ 2]  118 	decw x
+      00000A 26 F9            [ 1]  119 	jrne	00001$
+      00000C                        120 00002$:
+      00000C AEr00r00         [ 2]  121 	ldw	x, #l_INITIALIZER
+      00000F 27 09            [ 1]  122 	jreq	00004$
+      000011                        123 00003$:
+      000011 D6uFFuFF         [ 1]  124 	ld	a, (s_INITIALIZER - 1, x)
+      000014 D7uFFuFF         [ 1]  125 	ld	(s_INITIALIZED - 1, x), a
+      000017 5A               [ 2]  126 	decw	x
+      000018 26 F7            [ 1]  127 	jrne	00003$
+      00001A                        128 00004$:
+                                    129 ; stm8_genXINIT() end
+                                    130 	.area GSFINAL
+      000000 CCr00r40         [ 2]  131 	jp	__sdcc_program_startup
+                                    132 ;--------------------------------------------------------
+                                    133 ; Home
+                                    134 ;--------------------------------------------------------
+                                    135 	.area HOME
+                                    136 	.area HOME
+      000040                        137 __sdcc_program_startup:
+      000040 CCr01r51         [ 2]  138 	jp	_main
+                                    139 ;	return from main will return to caller
+                                    140 ;--------------------------------------------------------
+                                    141 ; code
+                                    142 ;--------------------------------------------------------
+                                    143 	.area CODE
+                                    144 ;	src/gpio.c: 24: void gpio_cfg(struct PORT * port, uint8_t pin, uint8_t cfg)
+                                    145 ;	-----------------------------------------
+                                    146 ;	 function gpio_cfg
+                                    147 ;	-----------------------------------------
+      000000                        148 _gpio_cfg:
+      000000 52 06            [ 2]  149 	sub	sp, #6
+                                    150 ;	src/gpio.c: 26: port->DDR |= ((cfg&(1<<0))>0)<<pin;
+      000002 16 09            [ 2]  151 	ldw	y, (0x09, sp)
+      000004 17 01            [ 2]  152 	ldw	(0x01, sp), y
+      000006 93               [ 1]  153 	ldw	x, y
+      000007 5C               [ 1]  154 	incw	x
+      000008 5C               [ 1]  155 	incw	x
+      000009 1F 05            [ 2]  156 	ldw	(0x05, sp), x
+      00000B F6               [ 1]  157 	ld	a, (x)
+      00000C 90 97            [ 1]  158 	ld	yl, a
+      00000E 7B 0C            [ 1]  159 	ld	a, (0x0c, sp)
+      000010 44               [ 1]  160 	srl	a
+      000011 24 03            [ 1]  161 	jrnc	00103$
+      000013 5F               [ 1]  162 	clrw	x
+      000014 5C               [ 1]  163 	incw	x
+      000015 21                     164 	.byte 0x21
+      000016                        165 00103$:
+      000016 5F               [ 1]  166 	clrw	x
+      000017                        167 00104$:
+      000017 7B 0B            [ 1]  168 	ld	a, (0x0b, sp)
+      000019 6B 03            [ 1]  169 	ld	(0x03, sp), a
+      00001B 27 06            [ 1]  170 	jreq	00126$
+      00001D                        171 00125$:
+      00001D 41               [ 1]  172 	exg	a, xl
+      00001E 48               [ 1]  173 	sll	a
+      00001F 41               [ 1]  174 	exg	a, xl
+      000020 4A               [ 1]  175 	dec	a
+      000021 26 FA            [ 1]  176 	jrne	00125$
+      000023                        177 00126$:
+      000023 90 9F            [ 1]  178 	ld	a, yl
+      000025 89               [ 2]  179 	pushw	x
+      000026 1A 02            [ 1]  180 	or	a, (2, sp)
+      000028 85               [ 2]  181 	popw	x
+      000029 1E 05            [ 2]  182 	ldw	x, (0x05, sp)
+      00002B F7               [ 1]  183 	ld	(x), a
+                                    184 ;	src/gpio.c: 27: port->CR1 |= ((cfg&(1<<1))>0)<<pin;
+      00002C 1E 01            [ 2]  185 	ldw	x, (0x01, sp)
+      00002E 1C 00 03         [ 2]  186 	addw	x, #0x0003
+      000031 1F 04            [ 2]  187 	ldw	(0x04, sp), x
+      000033 F6               [ 1]  188 	ld	a, (x)
+      000034 6B 06            [ 1]  189 	ld	(0x06, sp), a
+      000036 7B 0C            [ 1]  190 	ld	a, (0x0c, sp)
+      000038 A5 02            [ 1]  191 	bcp	a, #0x02
+      00003A 27 03            [ 1]  192 	jreq	00105$
+      00003C 5F               [ 1]  193 	clrw	x
+      00003D 5C               [ 1]  194 	incw	x
+      00003E 21                     195 	.byte 0x21
+      00003F                        196 00105$:
+      00003F 5F               [ 1]  197 	clrw	x
+      000040                        198 00106$:
+      000040 7B 03            [ 1]  199 	ld	a, (0x03, sp)
+      000042 27 06            [ 1]  200 	jreq	00129$
+      000044                        201 00128$:
+      000044 41               [ 1]  202 	exg	a, xl
+      000045 48               [ 1]  203 	sll	a
+      000046 41               [ 1]  204 	exg	a, xl
+      000047 4A               [ 1]  205 	dec	a
+      000048 26 FA            [ 1]  206 	jrne	00128$
+      00004A                        207 00129$:
+      00004A 7B 06            [ 1]  208 	ld	a, (0x06, sp)
+      00004C 89               [ 2]  209 	pushw	x
+      00004D 1A 02            [ 1]  210 	or	a, (2, sp)
+      00004F 85               [ 2]  211 	popw	x
+      000050 1E 04            [ 2]  212 	ldw	x, (0x04, sp)
+      000052 F7               [ 1]  213 	ld	(x), a
+                                    214 ;	src/gpio.c: 28: port->CR2 |= ((cfg&(1<<2))>0)<<pin;
+      000053 1E 01            [ 2]  215 	ldw	x, (0x01, sp)
+      000055 1C 00 04         [ 2]  216 	addw	x, #0x0004
+      000058 1F 05            [ 2]  217 	ldw	(0x05, sp), x
+      00005A F6               [ 1]  218 	ld	a, (x)
+      00005B 6B 04            [ 1]  219 	ld	(0x04, sp), a
+      00005D 7B 0C            [ 1]  220 	ld	a, (0x0c, sp)
+      00005F A5 04            [ 1]  221 	bcp	a, #0x04
+      000061 27 03            [ 1]  222 	jreq	00107$
+      000063 5F               [ 1]  223 	clrw	x
+      000064 5C               [ 1]  224 	incw	x
+      000065 21                     225 	.byte 0x21
+      000066                        226 00107$:
+      000066 5F               [ 1]  227 	clrw	x
+      000067                        228 00108$:
+      000067 7B 03            [ 1]  229 	ld	a, (0x03, sp)
+      000069 27 06            [ 1]  230 	jreq	00132$
+      00006B                        231 00131$:
+      00006B 41               [ 1]  232 	exg	a, xl
+      00006C 48               [ 1]  233 	sll	a
+      00006D 41               [ 1]  234 	exg	a, xl
+      00006E 4A               [ 1]  235 	dec	a
+      00006F 26 FA            [ 1]  236 	jrne	00131$
+      000071                        237 00132$:
+      000071 7B 04            [ 1]  238 	ld	a, (0x04, sp)
+      000073 89               [ 2]  239 	pushw	x
+      000074 1A 02            [ 1]  240 	or	a, (2, sp)
+      000076 85               [ 2]  241 	popw	x
+      000077 1E 05            [ 2]  242 	ldw	x, (0x05, sp)
+      000079 F7               [ 1]  243 	ld	(x), a
+                                    244 ;	src/gpio.c: 29: }
+      00007A 5B 06            [ 2]  245 	addw	sp, #6
+      00007C 81               [ 4]  246 	ret
+                                    247 ;	src/gpio.c: 31: void gpio_set(struct PORT * port, uint8_t pin, uint8_t state)
+                                    248 ;	-----------------------------------------
+                                    249 ;	 function gpio_set
+                                    250 ;	-----------------------------------------
+      00007D                        251 _gpio_set:
+      00007D 52 03            [ 2]  252 	sub	sp, #3
+                                    253 ;	src/gpio.c: 33: port->ODR ^= (port->ODR)^((state>0)<<pin);
+      00007F 1E 06            [ 2]  254 	ldw	x, (0x06, sp)
+      000081 1F 01            [ 2]  255 	ldw	(0x01, sp), x
+      000083 F6               [ 1]  256 	ld	a, (x)
+      000084 90 97            [ 1]  257 	ld	yl, a
+      000086 6B 03            [ 1]  258 	ld	(0x03, sp), a
+      000088 61               [ 1]  259 	exg	a, yl
+      000089 0D 09            [ 1]  260 	tnz	(0x09, sp)
+      00008B 27 03            [ 1]  261 	jreq	00103$
+      00008D 5F               [ 1]  262 	clrw	x
+      00008E 5C               [ 1]  263 	incw	x
+      00008F 21                     264 	.byte 0x21
+      000090                        265 00103$:
+      000090 5F               [ 1]  266 	clrw	x
+      000091                        267 00104$:
+      000091 7B 08            [ 1]  268 	ld	a, (0x08, sp)
+      000093 27 06            [ 1]  269 	jreq	00112$
+      000095                        270 00111$:
+      000095 41               [ 1]  271 	exg	a, xl
+      000096 48               [ 1]  272 	sll	a
+      000097 41               [ 1]  273 	exg	a, xl
+      000098 4A               [ 1]  274 	dec	a
+      000099 26 FA            [ 1]  275 	jrne	00111$
+      00009B                        276 00112$:
+      00009B 7B 03            [ 1]  277 	ld	a, (0x03, sp)
+      00009D 89               [ 2]  278 	pushw	x
+      00009E 18 02            [ 1]  279 	xor	a, (2, sp)
+      0000A0 85               [ 2]  280 	popw	x
+      0000A1 93               [ 1]  281 	ldw	x, y
+      0000A2 89               [ 2]  282 	pushw	x
+      0000A3 18 02            [ 1]  283 	xor	a, (2, sp)
+      0000A5 85               [ 2]  284 	popw	x
+      0000A6 1E 01            [ 2]  285 	ldw	x, (0x01, sp)
+      0000A8 F7               [ 1]  286 	ld	(x), a
+                                    287 ;	src/gpio.c: 34: }
+      0000A9 5B 03            [ 2]  288 	addw	sp, #3
+      0000AB 81               [ 4]  289 	ret
+                                    290 ;	src/gpio.c: 36: uint8_t gpio_get(struct PORT * port, uint8_t pin)
+                                    291 ;	-----------------------------------------
+                                    292 ;	 function gpio_get
+                                    293 ;	-----------------------------------------
+      0000AC                        294 _gpio_get:
+                                    295 ;	src/gpio.c: 38: return ((port->IDR&(1<<pin))>0);
+      0000AC 1E 03            [ 2]  296 	ldw	x, (0x03, sp)
+      0000AE E6 01            [ 1]  297 	ld	a, (0x1, x)
+      0000B0 90 97            [ 1]  298 	ld	yl, a
+      0000B2 7B 05            [ 1]  299 	ld	a, (0x05, sp)
+      0000B4 5F               [ 1]  300 	clrw	x
+      0000B5 5C               [ 1]  301 	incw	x
+      0000B6 4D               [ 1]  302 	tnz	a
+      0000B7 27 04            [ 1]  303 	jreq	00104$
+      0000B9                        304 00103$:
+      0000B9 58               [ 2]  305 	sllw	x
+      0000BA 4A               [ 1]  306 	dec	a
+      0000BB 26 FC            [ 1]  307 	jrne	00103$
+      0000BD                        308 00104$:
+      0000BD 4F               [ 1]  309 	clr	a
+      0000BE 89               [ 2]  310 	pushw	x
+      0000BF 14 01            [ 1]  311 	and	a, (1, sp)
+      0000C1 85               [ 2]  312 	popw	x
+      0000C2 95               [ 1]  313 	ld	xh, a
+      0000C3 89               [ 2]  314 	pushw	x
+      0000C4 90 9F            [ 1]  315 	ld	a, yl
+      0000C6 14 02            [ 1]  316 	and	a, (2, sp)
+      0000C8 85               [ 2]  317 	popw	x
+      0000C9 97               [ 1]  318 	ld	xl, a
+      0000CA A3 00 00         [ 2]  319 	cpw	x, #0x0000
+      0000CD 2C 02            [ 1]  320 	jrsgt	00105$
+      0000CF 4F               [ 1]  321 	clr	a
+      0000D0 81               [ 4]  322 	ret
+      0000D1                        323 00105$:
+      0000D1 A6 01            [ 1]  324 	ld	a, #0x01
+                                    325 ;	src/gpio.c: 39: }
+      0000D3 81               [ 4]  326 	ret
+                                    327 ;	src/uart.c: 62: void uart_cfg(int baud, uint8_t cr1, uint8_t cr2, uint8_t cr3)
+                                    328 ;	-----------------------------------------
+                                    329 ;	 function uart_cfg
+                                    330 ;	-----------------------------------------
+      0000D4                        331 _uart_cfg:
+      0000D4 52 04            [ 2]  332 	sub	sp, #4
+                                    333 ;	src/uart.c: 64: UART->CR1 = cr1;
+      0000D6 CEu00u12         [ 2]  334 	ldw	x, _UART+0
+      0000D9 7B 09            [ 1]  335 	ld	a, (0x09, sp)
+      0000DB E7 04            [ 1]  336 	ld	(0x0004, x), a
+                                    337 ;	src/uart.c: 65: UART->CR2 = cr2;
+      0000DD CEu00u12         [ 2]  338 	ldw	x, _UART+0
+      0000E0 7B 0A            [ 1]  339 	ld	a, (0x0a, sp)
+      0000E2 E7 05            [ 1]  340 	ld	(0x0005, x), a
+                                    341 ;	src/uart.c: 66: UART->CR3 = cr3;
+      0000E4 CEu00u12         [ 2]  342 	ldw	x, _UART+0
+      0000E7 7B 0B            [ 1]  343 	ld	a, (0x0b, sp)
+      0000E9 E7 06            [ 1]  344 	ld	(0x0006, x), a
+                                    345 ;	src/uart.c: 67: uint16_t div = F_MASTER/baud;
+      0000EB 16 07            [ 2]  346 	ldw	y, (0x07, sp)
+      0000ED 5F               [ 1]  347 	clrw	x
+      0000EE 90 5D            [ 2]  348 	tnzw	y
+      0000F0 2A 01            [ 1]  349 	jrpl	00103$
+      0000F2 5A               [ 2]  350 	decw	x
+      0000F3                        351 00103$:
+      0000F3 90 89            [ 2]  352 	pushw	y
+      0000F5 89               [ 2]  353 	pushw	x
+      0000F6 4B 00            [ 1]  354 	push	#0x00
+      0000F8 4B 24            [ 1]  355 	push	#0x24
+      0000FA 4B F4            [ 1]  356 	push	#0xf4
+      0000FC 4B 00            [ 1]  357 	push	#0x00
+      0000FE CDr00r00         [ 4]  358 	call	__divulong
+      000101 5B 08            [ 2]  359 	addw	sp, #8
+      000103 51               [ 1]  360 	exgw	x, y
+                                    361 ;	src/uart.c: 68: UART->BRR2 = ((div & 0xF000)>>8)|(div & 0x000F);
+      000104 CEu00u12         [ 2]  362 	ldw	x, _UART+0
+      000107 1C 00 03         [ 2]  363 	addw	x, #0x0003
+      00010A 1F 01            [ 2]  364 	ldw	(0x01, sp), x
+      00010C 93               [ 1]  365 	ldw	x, y
+      00010D 0F 04            [ 1]  366 	clr	(0x04, sp)
+      00010F 9E               [ 1]  367 	ld	a, xh
+      000110 A4 F0            [ 1]  368 	and	a, #0xf0
+      000112 5F               [ 1]  369 	clrw	x
+      000113 97               [ 1]  370 	ld	xl, a
+      000114 90 9F            [ 1]  371 	ld	a, yl
+      000116 A4 0F            [ 1]  372 	and	a, #0x0f
+      000118 89               [ 2]  373 	pushw	x
+      000119 1A 02            [ 1]  374 	or	a, (2, sp)
+      00011B 85               [ 2]  375 	popw	x
+      00011C 1E 01            [ 2]  376 	ldw	x, (0x01, sp)
+      00011E F7               [ 1]  377 	ld	(x), a
+                                    378 ;	src/uart.c: 69: UART->BRR1 = (div >> 4) & 0x00FF;
+      00011F CEu00u12         [ 2]  379 	ldw	x, _UART+0
+      000122 5C               [ 1]  380 	incw	x
+      000123 5C               [ 1]  381 	incw	x
+      000124 A6 10            [ 1]  382 	ld	a, #0x10
+      000126 90 62            [ 2]  383 	div	y, a
+      000128 90 9F            [ 1]  384 	ld	a, yl
+      00012A F7               [ 1]  385 	ld	(x), a
+                                    386 ;	src/uart.c: 70: }
+      00012B 5B 04            [ 2]  387 	addw	sp, #4
+      00012D 81               [ 4]  388 	ret
+                                    389 ;	src/uart.c: 72: uint8_t uart_recv()
+                                    390 ;	-----------------------------------------
+                                    391 ;	 function uart_recv
+                                    392 ;	-----------------------------------------
+      00012E                        393 _uart_recv:
+                                    394 ;	src/uart.c: 74: return UART->DR;
+      00012E CEu00u12         [ 2]  395 	ldw	x, _UART+0
+      000131 E6 01            [ 1]  396 	ld	a, (0x1, x)
+                                    397 ;	src/uart.c: 75: }
+      000133 81               [ 4]  398 	ret
+                                    399 ;	src/uart.c: 77: void uart_send(uint8_t data)
+                                    400 ;	-----------------------------------------
+                                    401 ;	 function uart_send
+                                    402 ;	-----------------------------------------
+      000134                        403 _uart_send:
+                                    404 ;	src/uart.c: 79: while(!((UART->SR)&(1<<7)));
+      000134                        405 00101$:
+      000134 CEu00u12         [ 2]  406 	ldw	x, _UART+0
+      000137 F6               [ 1]  407 	ld	a, (x)
+      000138 2A FA            [ 1]  408 	jrpl	00101$
+                                    409 ;	src/uart.c: 80: UART->DR = data;
+      00013A 5C               [ 1]  410 	incw	x
+      00013B 7B 03            [ 1]  411 	ld	a, (0x03, sp)
+      00013D F7               [ 1]  412 	ld	(x), a
+                                    413 ;	src/uart.c: 81: }
+      00013E 81               [ 4]  414 	ret
+                                    415 ;	src/main.c: 11: void tim2_update(void) __interrupt(13)
+                                    416 ;	-----------------------------------------
+                                    417 ;	 function tim2_update
+                                    418 ;	-----------------------------------------
+      00013F                        419 _tim2_update:
+                                    420 ;	src/main.c: 13: millis+=1;
+      00013F CEu00u16         [ 2]  421 	ldw	x, _millis+0
+      000142 5C               [ 1]  422 	incw	x
+      000143 CFu00u16         [ 2]  423 	ldw	_millis+0, x
+                                    424 ;	src/main.c: 14: TIM2->SR1 &= ~TIM_SR1_UIF;
+      000146 CEu00u0E         [ 2]  425 	ldw	x, _TIM2+0
+      000149 1C 00 04         [ 2]  426 	addw	x, #0x0004
+      00014C F6               [ 1]  427 	ld	a, (x)
+      00014D A4 FE            [ 1]  428 	and	a, #0xfe
+      00014F F7               [ 1]  429 	ld	(x), a
+                                    430 ;	src/main.c: 15: }
+      000150 80               [11]  431 	iret
+                                    432 ;	src/main.c: 17: void main()
+                                    433 ;	-----------------------------------------
+                                    434 ;	 function main
+                                    435 ;	-----------------------------------------
+      000151                        436 _main:
+      000151 52 02            [ 2]  437 	sub	sp, #2
+                                    438 ;	src/main.c: 19: CLK->CKDIVR=0;
+      000153 CEu00u02         [ 2]  439 	ldw	x, _CLK+0
+      000156 6F 06            [ 1]  440 	clr	(0x0006, x)
+                                    441 ;	src/main.c: 20: TIM2->PSCR=7;
+      000158 CEu00u0E         [ 2]  442 	ldw	x, _TIM2+0
+      00015B A6 07            [ 1]  443 	ld	a, #0x07
+      00015D E7 0E            [ 1]  444 	ld	(0x000e, x), a
+                                    445 ;	src/main.c: 21: TIM2->ARRH=0;
+      00015F CEu00u0E         [ 2]  446 	ldw	x, _TIM2+0
+      000162 6F 0F            [ 1]  447 	clr	(0x000f, x)
+                                    448 ;	src/main.c: 22: TIM2->ARRL=125;
+      000164 CEu00u0E         [ 2]  449 	ldw	x, _TIM2+0
+      000167 A6 7D            [ 1]  450 	ld	a, #0x7d
+      000169 E7 10            [ 1]  451 	ld	(0x0010, x), a
+                                    452 ;	src/main.c: 20: TIM2->PSCR=7;
+      00016B CEu00u0E         [ 2]  453 	ldw	x, _TIM2+0
+                                    454 ;	src/main.c: 23: TIM2->IER|=TIM_IER_UIE;
+      00016E 1C 00 03         [ 2]  455 	addw	x, #0x0003
+      000171 F6               [ 1]  456 	ld	a, (x)
+      000172 AA 01            [ 1]  457 	or	a, #0x01
+      000174 F7               [ 1]  458 	ld	(x), a
+                                    459 ;	src/main.c: 20: TIM2->PSCR=7;
+      000175 CEu00u0E         [ 2]  460 	ldw	x, _TIM2+0
+                                    461 ;	src/main.c: 24: TIM2->CR1|=TIM_CR1_CEN;
+      000178 F6               [ 1]  462 	ld	a, (x)
+      000179 AA 01            [ 1]  463 	or	a, #0x01
+      00017B F7               [ 1]  464 	ld	(x), a
+                                    465 ;	src/main.c: 25: uart_cfg(9600,0,UART_CR2_TEN,0);
+      00017C 4B 00            [ 1]  466 	push	#0x00
+      00017E 4B 08            [ 1]  467 	push	#0x08
+      000180 4B 00            [ 1]  468 	push	#0x00
+      000182 4B 80            [ 1]  469 	push	#0x80
+      000184 4B 25            [ 1]  470 	push	#0x25
+      000186 CDr00rD4         [ 4]  471 	call	_uart_cfg
+      000189 5B 05            [ 2]  472 	addw	sp, #5
+                                    473 ;	src/main.c: 26: gpio_cfg(GPIO_B,5,GPIO_OUT);
+      00018B 4B 01            [ 1]  474 	push	#0x01
+      00018D 4B 05            [ 1]  475 	push	#0x05
+      00018F 3Bu00u07         [ 1]  476 	push	_GPIO_B+1
+      000192 3Bu00u06         [ 1]  477 	push	_GPIO_B+0
+      000195 CDr00r00         [ 4]  478 	call	_gpio_cfg
+      000198 5B 04            [ 2]  479 	addw	sp, #4
+                                    480 ;	src/main.c: 27: int_all();
+      00019A 9A               [ 1]  481 	rim
+                                    482 ;	src/main.c: 28: while(1)
+      00019B                        483 00105$:
+                                    484 ;	src/main.c: 30: unsigned int old = millis;
+      00019B CEu00u16         [ 2]  485 	ldw	x, _millis+0
+      00019E 1F 01            [ 2]  486 	ldw	(0x01, sp), x
+                                    487 ;	src/main.c: 31: while(millis-old<1000);
+      0001A0                        488 00101$:
+      0001A0 CEu00u16         [ 2]  489 	ldw	x, _millis+0
+      0001A3 72 F0 01         [ 2]  490 	subw	x, (0x01, sp)
+      0001A6 A3 03 E8         [ 2]  491 	cpw	x, #0x03e8
+      0001A9 25 F5            [ 1]  492 	jrc	00101$
+                                    493 ;	src/main.c: 32: gpio_set(GPIO_B,5,!gpio_get(GPIO_B,5));
+      0001AB 4B 05            [ 1]  494 	push	#0x05
+      0001AD 3Bu00u07         [ 1]  495 	push	_GPIO_B+1
+      0001B0 3Bu00u06         [ 1]  496 	push	_GPIO_B+0
+      0001B3 CDr00rAC         [ 4]  497 	call	_gpio_get
+      0001B6 5B 03            [ 2]  498 	addw	sp, #3
+      0001B8 A0 01            [ 1]  499 	sub	a, #0x01
+      0001BA 4F               [ 1]  500 	clr	a
+      0001BB 49               [ 1]  501 	rlc	a
+      0001BC 88               [ 1]  502 	push	a
+      0001BD 4B 05            [ 1]  503 	push	#0x05
+      0001BF 3Bu00u07         [ 1]  504 	push	_GPIO_B+1
+      0001C2 3Bu00u06         [ 1]  505 	push	_GPIO_B+0
+      0001C5 CDr00r7D         [ 4]  506 	call	_gpio_set
+      0001C8 5B 04            [ 2]  507 	addw	sp, #4
+                                    508 ;	src/main.c: 33: uart_send('A');
+      0001CA 4B 41            [ 1]  509 	push	#0x41
+      0001CC CDr01r34         [ 4]  510 	call	_uart_send
+      0001CF 84               [ 1]  511 	pop	a
+      0001D0 20 C9            [ 2]  512 	jra	00105$
+                                    513 ;	src/main.c: 35: }
+      0001D2 5B 02            [ 2]  514 	addw	sp, #2
+      0001D4 81               [ 4]  515 	ret
+                                    516 	.area CODE
+                                    517 	.area CONST
+                                    518 	.area INITIALIZER
+      000000                        519 __xinit__RST:
+      000000 50 B3                  520 	.dw #0x50b3
+      000002                        521 __xinit__CLK:
+      000002 50 C0                  522 	.dw #0x50c0
+      000004                        523 __xinit__GPIO_A:
+      000004 50 00                  524 	.dw #0x5000
+      000006                        525 __xinit__GPIO_B:
+      000006 50 05                  526 	.dw #0x5005
+      000008                        527 __xinit__GPIO_C:
+      000008 50 0A                  528 	.dw #0x500a
+      00000A                        529 __xinit__GPIO_D:
+      00000A 50 0F                  530 	.dw #0x500f
+      00000C                        531 __xinit__TIM1:
+      00000C 52 50                  532 	.dw #0x5250
+      00000E                        533 __xinit__TIM2:
+      00000E 53 00                  534 	.dw #0x5300
+      000010                        535 __xinit__TIM4:
+      000010 53 40                  536 	.dw #0x5340
+      000012                        537 __xinit__UART:
+      000012 52 30                  538 	.dw #0x5230
+      000014                        539 __xinit__EXTI:
+      000014 50 A0                  540 	.dw #0x50a0
+      000016                        541 __xinit__millis:
+      000016 00 00                  542 	.dw #0x0000
+                                    543 	.area CABS (ABS)
