@@ -13,6 +13,7 @@ Symbol Table
   2 _GPIO_B                                                        000006 GR
   2 _GPIO_C                                                        000008 GR
   2 _GPIO_D                                                        00000A GR
+  2 _I2C                                                           000016 GR
   2 _RST                                                           000000 GR
   2 _TIM1                                                          00000C GR
   2 _TIM2                                                          00000E GR
@@ -30,27 +31,31 @@ Symbol Table
   9 __xinit__GPIO_B                                                000006 R
   9 __xinit__GPIO_C                                                000008 R
   9 __xinit__GPIO_D                                                00000A R
+  9 __xinit__I2C                                                   000016 R
   9 __xinit__RST                                                   000000 R
   9 __xinit__TIM1                                                  00000C R
   9 __xinit__TIM2                                                  00000E R
   9 __xinit__TIM4                                                  000010 R
   9 __xinit__UART                                                  000012 R
-  9 __xinit__millis                                                000016 R
-  A _gpio_cfg                                                      000000 GR
-  A _gpio_get                                                      0000AC GR
-  A _gpio_set                                                      00007D GR
-  A _main                                                          000151 GR
-  2 _millis                                                        000016 GR
-  A _tim2_update                                                   00013F GR
-  A _uart_cfg                                                      0000D4 GR
-  A _uart_recv                                                     00012E GR
-  A _uart_send                                                     000134 GR
+  9 __xinit__millis                                                000018 R
+  A _gpio_cfg                                                      000005 GR
+  A _gpio_get                                                      0000B1 GR
+  A _gpio_set                                                      000082 GR
+  A _main                                                          000180 GR
+  2 _millis                                                        000018 GR
+  A _rst_get                                                       000000 GR
+  A _tim2_update                                                   00016E GR
+  A _uart_cfg                                                      0000D9 GR
+  A _uart_check                                                    00014F GR
+  A _uart_recv                                                     00015D GR
+  A _uart_send                                                     000163 GR
     l_DATA                                                         ****** GX
     l_INITIALIZER                                                  ****** GX
     s_DATA                                                         ****** GX
     s_GSINIT                                                       ****** GX
     s_INITIALIZED                                                  ****** GX
     s_INITIALIZER                                                  ****** GX
+
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (STMicroelectronics STM8), page 2.
 Hexadecimal [24-Bits]
@@ -59,14 +64,14 @@ Area Table
 
    0 _CODE                                      size      0   flags    0
    1 DATA                                       size      0   flags    0
-   2 INITIALIZED                                size     18   flags    0
+   2 INITIALIZED                                size     1A   flags    0
    3 SSEG                                       size      1   flags    0
    4 DABS                                       size      0   flags    8
    5 HOME                                       size     43   flags    0
    6 GSINIT                                     size     1A   flags    0
    7 GSFINAL                                    size      3   flags    0
    8 CONST                                      size      0   flags    0
-   9 INITIALIZER                                size     18   flags    0
-   A CODE                                       size    1D5   flags    0
+   9 INITIALIZER                                size     1A   flags    0
+   A CODE                                       size    1D3   flags    0
    B CABS                                       size      0   flags    8
 

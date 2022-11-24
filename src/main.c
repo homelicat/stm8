@@ -23,12 +23,9 @@ void main()
 	TIM2->ARRL=125;
 	TIM2->IER|=TIM_IER_UIE;
 	TIM2->CR1|=TIM_CR1_CEN;
-	uart_cfg(9600,0,UART_CR2_TEN,0);
+	uart_cfg(9600,0,UART_CR2_TEN|UART_CR2_REN,0,0,0,0,0);
 	gpio_cfg(GPIO_B,5,GPIO_OUT);
 	int_all();
-	I2C->FREQR = I2C_FREQR_1;
-	I2C->CCRL = 0x50;
-	I2C->CR1 = 1;
 	while(1)
 	{
 		

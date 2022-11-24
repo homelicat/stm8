@@ -10,7 +10,7 @@
 
 #define I2C_FREQR_1 (1<<0) //1MHz
 
-#define 
+//#define 
 
 struct
 {

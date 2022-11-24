@@ -12,11 +12,14 @@
 	.globl _tim2_update
 	.globl _uart_send
 	.globl _uart_recv
+	.globl _uart_check
 	.globl _uart_cfg
 	.globl _gpio_get
 	.globl _gpio_set
 	.globl _gpio_cfg
+	.globl _rst_get
 	.globl _millis
+	.globl _I2C
 	.globl _EXTI
 	.globl _UART
 	.globl _TIM4
@@ -57,6 +60,8 @@ _TIM4::
 _UART::
 	.ds 2
 _EXTI::
+	.ds 2
+_I2C::
 	.ds 2
 _millis::
 	.ds 2
@@ -141,13 +146,23 @@ __sdcc_program_startup:
 ; code
 ;--------------------------------------------------------
 	.area CODE
-;	src/gpio.c: 24: void gpio_cfg(struct PORT * port, uint8_t pin, uint8_t cfg)
+;	src/core.c: 10: uint8_t rst_get()
+;	-----------------------------------------
+;	 function rst_get
+;	-----------------------------------------
+_rst_get:
+;	src/core.c: 12: return RST->SR;
+	ldw	x, _RST+0
+	ld	a, (x)
+;	src/core.c: 13: }
+	ret
+;	src/gpio.c: 25: void gpio_cfg(struct PORT * port, uint8_t pin, uint8_t cfg)
 ;	-----------------------------------------
 ;	 function gpio_cfg
 ;	-----------------------------------------
 _gpio_cfg:
 	sub	sp, #6
-;	src/gpio.c: 26: port->DDR |= ((cfg&(1<<0))>0)<<pin;
+;	src/gpio.c: 27: port->DDR |= ((cfg&(1<<0))>0)<<pin;
 	ldw	y, (0x09, sp)
 	ldw	(0x01, sp), y
 	ldw	x, y
@@ -181,7 +196,7 @@ _gpio_cfg:
 	popw	x
 	ldw	x, (0x05, sp)
 	ld	(x), a
-;	src/gpio.c: 27: port->CR1 |= ((cfg&(1<<1))>0)<<pin;
+;	src/gpio.c: 28: port->CR1 |= ((cfg&(1<<1))>0)<<pin;
 	ldw	x, (0x01, sp)
 	addw	x, #0x0003
 	ldw	(0x04, sp), x
@@ -211,7 +226,7 @@ _gpio_cfg:
 	popw	x
 	ldw	x, (0x04, sp)
 	ld	(x), a
-;	src/gpio.c: 28: port->CR2 |= ((cfg&(1<<2))>0)<<pin;
+;	src/gpio.c: 29: port->CR2 |= ((cfg&(1<<2))>0)<<pin;
 	ldw	x, (0x01, sp)
 	addw	x, #0x0004
 	ldw	(0x05, sp), x
@@ -241,16 +256,16 @@ _gpio_cfg:
 	popw	x
 	ldw	x, (0x05, sp)
 	ld	(x), a
-;	src/gpio.c: 29: }
+;	src/gpio.c: 30: }
 	addw	sp, #6
 	ret
-;	src/gpio.c: 31: void gpio_set(struct PORT * port, uint8_t pin, uint8_t state)
+;	src/gpio.c: 33: void gpio_set(struct PORT * port, uint8_t pin, uint8_t state)
 ;	-----------------------------------------
 ;	 function gpio_set
 ;	-----------------------------------------
 _gpio_set:
 	sub	sp, #3
-;	src/gpio.c: 33: port->ODR ^= (port->ODR)^((state>0)<<pin);
+;	src/gpio.c: 35: port->ODR ^= (port->ODR)^((state>0)<<pin);
 	ldw	x, (0x06, sp)
 	ldw	(0x01, sp), x
 	ld	a, (x)
@@ -284,15 +299,15 @@ _gpio_set:
 	popw	x
 	ldw	x, (0x01, sp)
 	ld	(x), a
-;	src/gpio.c: 34: }
+;	src/gpio.c: 36: }
 	addw	sp, #3
 	ret
-;	src/gpio.c: 36: uint8_t gpio_get(struct PORT * port, uint8_t pin)
+;	src/gpio.c: 39: uint8_t gpio_get(struct PORT * port, uint8_t pin)
 ;	-----------------------------------------
 ;	 function gpio_get
 ;	-----------------------------------------
 _gpio_get:
-;	src/gpio.c: 38: return ((port->IDR&(1<<pin))>0);
+;	src/gpio.c: 41: return ((port->IDR&(1<<pin))>0);
 	ldw	x, (0x03, sp)
 	ld	a, (0x1, x)
 	ld	yl, a
@@ -322,27 +337,43 @@ _gpio_get:
 	ret
 00105$:
 	ld	a, #0x01
-;	src/gpio.c: 39: }
+;	src/gpio.c: 42: }
 	ret
-;	src/uart.c: 62: void uart_cfg(int baud, uint8_t cr1, uint8_t cr2, uint8_t cr3)
+;	src/uart.c: 66: void uart_cfg(int baud, uint8_t cr1, uint8_t cr2, uint8_t cr3, uint8_t cr4, uint8_t cr5, uint8_t gt, uint8_t prescale)
 ;	-----------------------------------------
 ;	 function uart_cfg
 ;	-----------------------------------------
 _uart_cfg:
 	sub	sp, #4
-;	src/uart.c: 64: UART->CR1 = cr1;
+;	src/uart.c: 68: UART->CR1 = cr1;
 	ldw	x, _UART+0
 	ld	a, (0x09, sp)
 	ld	(0x0004, x), a
-;	src/uart.c: 65: UART->CR2 = cr2;
+;	src/uart.c: 69: UART->CR2 = cr2;
 	ldw	x, _UART+0
 	ld	a, (0x0a, sp)
 	ld	(0x0005, x), a
-;	src/uart.c: 66: UART->CR3 = cr3;
+;	src/uart.c: 70: UART->CR3 = cr3;
 	ldw	x, _UART+0
 	ld	a, (0x0b, sp)
 	ld	(0x0006, x), a
-;	src/uart.c: 67: uint16_t div = F_MASTER/baud;
+;	src/uart.c: 71: UART->CR4 = cr4;
+	ldw	x, _UART+0
+	ld	a, (0x0c, sp)
+	ld	(0x0007, x), a
+;	src/uart.c: 72: UART->CR5 = cr5;
+	ldw	x, _UART+0
+	ld	a, (0x0d, sp)
+	ld	(0x0008, x), a
+;	src/uart.c: 73: UART->GTR = gt;
+	ldw	x, _UART+0
+	ld	a, (0x0e, sp)
+	ld	(0x0009, x), a
+;	src/uart.c: 74: UART->PSCR = prescale;
+	ldw	x, _UART+0
+	ld	a, (0x0f, sp)
+	ld	(0x000a, x), a
+;	src/uart.c: 75: uint16_t div = F_MASTER/baud;
 	ldw	y, (0x07, sp)
 	clrw	x
 	tnzw	y
@@ -358,7 +389,7 @@ _uart_cfg:
 	call	__divulong
 	addw	sp, #8
 	exgw	x, y
-;	src/uart.c: 68: UART->BRR2 = ((div & 0xF000)>>8)|(div & 0x000F);
+;	src/uart.c: 76: UART->BRR2 = ((div & 0xF000)>>8)|(div & 0x000F);
 	ldw	x, _UART+0
 	addw	x, #0x0003
 	ldw	(0x01, sp), x
@@ -375,7 +406,7 @@ _uart_cfg:
 	popw	x
 	ldw	x, (0x01, sp)
 	ld	(x), a
-;	src/uart.c: 69: UART->BRR1 = (div >> 4) & 0x00FF;
+;	src/uart.c: 77: UART->BRR1 = (div >> 4) & 0x00FF;
 	ldw	x, _UART+0
 	incw	x
 	incw	x
@@ -383,135 +414,128 @@ _uart_cfg:
 	div	y, a
 	ld	a, yl
 	ld	(x), a
-;	src/uart.c: 70: }
+;	src/uart.c: 78: }
 	addw	sp, #4
 	ret
-;	src/uart.c: 72: uint8_t uart_recv()
+;	src/uart.c: 81: uint8_t uart_check()
+;	-----------------------------------------
+;	 function uart_check
+;	-----------------------------------------
+_uart_check:
+;	src/uart.c: 83: return (UART->SR&UART_SR_RXNE)>0;
+	ldw	x, _UART+0
+	ld	a, (x)
+	bcp	a, #0x20
+	jreq	00103$
+	clrw	x
+	incw	x
+	.byte 0x21
+00103$:
+	clrw	x
+00104$:
+	ld	a, xl
+;	src/uart.c: 84: }
+	ret
+;	src/uart.c: 87: uint8_t uart_recv()
 ;	-----------------------------------------
 ;	 function uart_recv
 ;	-----------------------------------------
 _uart_recv:
-;	src/uart.c: 74: return UART->DR;
+;	src/uart.c: 89: return UART->DR;
 	ldw	x, _UART+0
 	ld	a, (0x1, x)
-;	src/uart.c: 75: }
+;	src/uart.c: 90: }
 	ret
-;	src/uart.c: 77: void uart_send(uint8_t data)
+;	src/uart.c: 93: void uart_send(uint8_t data)
 ;	-----------------------------------------
 ;	 function uart_send
 ;	-----------------------------------------
 _uart_send:
-;	src/uart.c: 79: while(!((UART->SR)&(1<<7)));
+;	src/uart.c: 95: while(!((UART->SR)&UART_SR_TXE));
 00101$:
 	ldw	x, _UART+0
 	ld	a, (x)
 	jrpl	00101$
-;	src/uart.c: 80: UART->DR = data;
+;	src/uart.c: 96: UART->DR = data;
 	incw	x
 	ld	a, (0x03, sp)
 	ld	(x), a
-;	src/uart.c: 81: }
+;	src/uart.c: 97: }
 	ret
-;	src/main.c: 11: void tim2_update(void) __interrupt(13)
+;	src/main.c: 12: void tim2_update(void) __interrupt(13)
 ;	-----------------------------------------
 ;	 function tim2_update
 ;	-----------------------------------------
 _tim2_update:
-;	src/main.c: 13: millis+=1;
+;	src/main.c: 14: millis+=1;
 	ldw	x, _millis+0
 	incw	x
 	ldw	_millis+0, x
-;	src/main.c: 14: TIM2->SR1 &= ~TIM_SR1_UIF;
+;	src/main.c: 15: TIM2->SR1 &= ~TIM_SR1_UIF;
 	ldw	x, _TIM2+0
 	addw	x, #0x0004
 	ld	a, (x)
 	and	a, #0xfe
 	ld	(x), a
-;	src/main.c: 15: }
+;	src/main.c: 16: }
 	iret
-;	src/main.c: 17: void main()
+;	src/main.c: 18: void main()
 ;	-----------------------------------------
 ;	 function main
 ;	-----------------------------------------
 _main:
-	sub	sp, #2
-;	src/main.c: 19: CLK->CKDIVR=0;
+;	src/main.c: 20: CLK->CKDIVR=0;
 	ldw	x, _CLK+0
 	clr	(0x0006, x)
-;	src/main.c: 20: TIM2->PSCR=7;
+;	src/main.c: 21: TIM2->PSCR=7;
 	ldw	x, _TIM2+0
 	ld	a, #0x07
 	ld	(0x000e, x), a
-;	src/main.c: 21: TIM2->ARRH=0;
+;	src/main.c: 22: TIM2->ARRH=0;
 	ldw	x, _TIM2+0
 	clr	(0x000f, x)
-;	src/main.c: 22: TIM2->ARRL=125;
+;	src/main.c: 23: TIM2->ARRL=125;
 	ldw	x, _TIM2+0
 	ld	a, #0x7d
 	ld	(0x0010, x), a
-;	src/main.c: 20: TIM2->PSCR=7;
+;	src/main.c: 21: TIM2->PSCR=7;
 	ldw	x, _TIM2+0
-;	src/main.c: 23: TIM2->IER|=TIM_IER_UIE;
+;	src/main.c: 24: TIM2->IER|=TIM_IER_UIE;
 	addw	x, #0x0003
 	ld	a, (x)
 	or	a, #0x01
 	ld	(x), a
-;	src/main.c: 20: TIM2->PSCR=7;
+;	src/main.c: 21: TIM2->PSCR=7;
 	ldw	x, _TIM2+0
-;	src/main.c: 24: TIM2->CR1|=TIM_CR1_CEN;
+;	src/main.c: 25: TIM2->CR1|=TIM_CR1_CEN;
 	ld	a, (x)
 	or	a, #0x01
 	ld	(x), a
-;	src/main.c: 25: uart_cfg(9600,0,UART_CR2_TEN,0);
+;	src/main.c: 26: uart_cfg(9600,0,UART_CR2_TEN|UART_CR2_REN,0,0,0,0,0);
 	push	#0x00
-	push	#0x08
+	push	#0x00
+	push	#0x00
+	push	#0x00
+	push	#0x00
+	push	#0x0c
 	push	#0x00
 	push	#0x80
 	push	#0x25
 	call	_uart_cfg
-	addw	sp, #5
-;	src/main.c: 26: gpio_cfg(GPIO_B,5,GPIO_OUT);
+	addw	sp, #9
+;	src/main.c: 27: gpio_cfg(GPIO_B,5,GPIO_OUT);
 	push	#0x01
 	push	#0x05
 	push	_GPIO_B+1
 	push	_GPIO_B+0
 	call	_gpio_cfg
 	addw	sp, #4
-;	src/main.c: 27: int_all();
+;	src/main.c: 28: int_all();
 	rim
-;	src/main.c: 28: while(1)
-00105$:
-;	src/main.c: 30: unsigned int old = millis;
-	ldw	x, _millis+0
-	ldw	(0x01, sp), x
-;	src/main.c: 31: while(millis-old<1000);
-00101$:
-	ldw	x, _millis+0
-	subw	x, (0x01, sp)
-	cpw	x, #0x03e8
-	jrc	00101$
-;	src/main.c: 32: gpio_set(GPIO_B,5,!gpio_get(GPIO_B,5));
-	push	#0x05
-	push	_GPIO_B+1
-	push	_GPIO_B+0
-	call	_gpio_get
-	addw	sp, #3
-	sub	a, #0x01
-	clr	a
-	rlc	a
-	push	a
-	push	#0x05
-	push	_GPIO_B+1
-	push	_GPIO_B+0
-	call	_gpio_set
-	addw	sp, #4
-;	src/main.c: 33: uart_send('A');
-	push	#0x41
-	call	_uart_send
-	pop	a
-	jra	00105$
-;	src/main.c: 35: }
-	addw	sp, #2
+;	src/main.c: 29: while(1)
+00102$:
+	jra	00102$
+;	src/main.c: 33: }
 	ret
 	.area CODE
 	.area CONST
@@ -538,6 +562,8 @@ __xinit__UART:
 	.dw #0x5230
 __xinit__EXTI:
 	.dw #0x50a0
+__xinit__I2C:
+	.dw #0x5210
 __xinit__millis:
 	.dw #0x0000
 	.area CABS (ABS)

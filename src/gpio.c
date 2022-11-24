@@ -21,6 +21,7 @@ struct PORT *GPIO_B = 0x5005;
 struct PORT *GPIO_C = 0x500a;
 struct PORT *GPIO_D = 0x500f;
 
+// configure pin(0-7) of port (struct) by cfg byte made by "or" of defines
 void gpio_cfg(struct PORT * port, uint8_t pin, uint8_t cfg)
 {
 	port->DDR |= ((cfg&(1<<0))>0)<<pin;
@@ -28,11 +29,13 @@ void gpio_cfg(struct PORT * port, uint8_t pin, uint8_t cfg)
 	port->CR2 |= ((cfg&(1<<2))>0)<<pin;
 }
 
+// set pin(0-7) of port(struct) state(bool)
 void gpio_set(struct PORT * port, uint8_t pin, uint8_t state)
 {
 	port->ODR ^= (port->ODR)^((state>0)<<pin);
 }
 
+// return pin(0-7) of port(struct) state(bool)
 uint8_t gpio_get(struct PORT * port, uint8_t pin)
 {
 	return ((port->IDR&(1<<pin))>0);

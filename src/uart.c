@@ -27,22 +27,25 @@
 
 #define UART_CR3_LINEN (1<<6) //LIN mode enable
 #define UART_CR3_STOP1 (1<<5) //STOP bits
-#define UART_CR3_STOP2 (1<<4) 
+#define UART_CR3_STOP0 (1<<4) 
 #define UART_CR3_CLKEN (1<<3) //Clock enable
 #define UART_CR3_CPOL (1<<2) //Clock polarity
 #define UART_CR3_CPHA (1<<1) //Clock phase
 #define UART_CR3_LBCL (1<<0) //Last bit clock pulse
-#define UART_CR1_TEN (1<<0)
-#define UART_REN (1<<1)
-#define UART_TIEN (1<<2)
-#define UART_TCIEN (1<<3)
-#define UART_RIEN (1<<4)
-#define UART_ILIEN (1<<5)
-#define UART_PCEN (1<<6)
-#define UART_PS (1<<7)
-#define UART_PIEN (1<<8)
-#define UART_STOP1 (1<<9)
-#define UART_STOP2 (1<<10)
+
+#define UART_CR4_LBDIEN (1<<6) //LIN Break Detection Interrupt Enable
+#define UART_CR4_LBDL (1<<5) //LIN Break Detection Length
+#define UART_CR4_LBDF (1<<4) //LIN Break Detection Flag
+#define UART_CR4_ADD3 (1<<3) //Address of the UART node
+#define UART_CR4_ADD2 (1<<2)
+#define UART_CR4_ADD1 (1<<1)
+#define UART_CR4_ADD0 (1<<0)
+
+#define UART_CR5_SCEN (1<<5) //Smartcard mode enable
+#define UART_CR5_NACK (1<<4) //Smartcard NACK enable
+#define UART_CR5_HDSEL (1<<3) //Half-Duplex Selection
+#define UART_CR5_IRLP (1<<2) //IrDA Low Power
+#define UART_CR5_IREN (1<<1) //IrDA mode Enable 
 
 struct
 {
@@ -59,23 +62,36 @@ struct
 	uint8_t PSCR;
 } * UART = 0x5230;
 
-void uart_cfg(int baud, uint8_t cr1, uint8_t cr2, uint8_t cr3)
+//configure uart by baud(value) cr1-5(defines) gt and prescale
+void uart_cfg(int baud, uint8_t cr1, uint8_t cr2, uint8_t cr3, uint8_t cr4, uint8_t cr5, uint8_t gt, uint8_t prescale)
 {
 	UART->CR1 = cr1;
 	UART->CR2 = cr2;
 	UART->CR3 = cr3;
+	UART->CR4 = cr4;
+	UART->CR5 = cr5;
+	UART->GTR = gt;
+	UART->PSCR = prescale;
 	uint16_t div = F_MASTER/baud;
 	UART->BRR2 = ((div & 0xF000)>>8)|(div & 0x000F);
 	UART->BRR1 = (div >> 4) & 0x00FF;
 }
 
+//check for data
+uint8_t uart_check()
+{
+	return (UART->SR&UART_SR_RXNE)>0;
+}
+
+//receive data from uart
 uint8_t uart_recv()
 {
 	return UART->DR;
 }
 
+//send data to uart
 void uart_send(uint8_t data)
 {
-	while(!((UART->SR)&(1<<7)));
+	while(!((UART->SR)&UART_SR_TXE));
 	UART->DR = data;
 }

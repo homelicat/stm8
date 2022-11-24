@@ -21,24 +21,24 @@ Area                                    Addr        Size        Decimal Bytes (A
      00000001  s_DATA                          
      00000001  s_INITIALIZED                   
      00000003  l_GSFINAL                       
-     00000018  l_INITIALIZED                   
-     00000018  l_INITIALIZER                   
      0000001A  l_GSINIT                        
+     0000001A  l_INITIALIZED                   
+     0000001A  l_INITIALIZER                   
      00000043  l_HOME                          
-     0000022F  l_CODE                          
+     0000022D  l_CODE                          
      00008000  s_HOME                          
      00008043  s_GSINIT                        
      0000805D  s_GSFINAL                       
      00008060  s_CONST                         
      00008060  s_INITIALIZER                   
-     00008078  s_CODE                          
+     0000807A  s_CODE                          
 
 ASxxxx Linker V03.00 + NoICE + sdld,  page 2.
 Hexadecimal  [32-Bits]
 
 Area                                    Addr        Size        Decimal Bytes (Attributes)
 --------------------------------        ----        ----        ------- ----- ------------
-INITIALIZED                         00000001    00000018 =          24. bytes (REL,CON)
+INITIALIZED                         00000001    0000001A =          26. bytes (REL,CON)
 
       Value  Global                              Global Defined In Module
       -----  --------------------------------   ------------------------
@@ -53,7 +53,9 @@ INITIALIZED                         00000001    00000018 =          24. bytes (R
      00000011  _TIM4                              main
      00000013  _UART                              main
      00000015  _EXTI                              main
-     00000017  _millis                            main
+     00000017  _I2C                               main
+     00000019  _millis                            main
+
 ASxxxx Linker V03.00 + NoICE + sdld,  page 3.
 Hexadecimal  [32-Bits]
 
@@ -95,7 +97,7 @@ Hexadecimal  [32-Bits]
 
 Area                                    Addr        Size        Decimal Bytes (Attributes)
 --------------------------------        ----        ----        ------- ----- ------------
-INITIALIZER                         00008060    00000018 =          24. bytes (REL,CON)
+INITIALIZER                         00008060    0000001A =          26. bytes (REL,CON)
 
       Value  Global                              Global Defined In Module
       -----  --------------------------------   ------------------------
@@ -104,19 +106,22 @@ Hexadecimal  [32-Bits]
 
 Area                                    Addr        Size        Decimal Bytes (Attributes)
 --------------------------------        ----        ----        ------- ----- ------------
-CODE                                00008078    0000022F =         559. bytes (REL,CON)
+CODE                                0000807A    0000022D =         557. bytes (REL,CON)
 
       Value  Global                              Global Defined In Module
       -----  --------------------------------   ------------------------
-     00008078  _gpio_cfg                          main
-     000080F5  _gpio_set                          main
-     00008124  _gpio_get                          main
-     0000814C  _uart_cfg                          main
-     000081A6  _uart_recv                         main
-     000081AC  _uart_send                         main
-     000081B7  _tim2_update                       main
-     000081C9  _main                              main
+     0000807A  _rst_get                           main
+     0000807F  _gpio_cfg                          main
+     000080FC  _gpio_set                          main
+     0000812B  _gpio_get                          main
+     00008153  _uart_cfg                          main
+     000081C9  _uart_check                        main
+     000081D7  _uart_recv                         main
+     000081DD  _uart_send                         main
+     000081E8  _tim2_update                       main
+     000081FA  _main                              main
      0000824D  __divulong                         
+
 ASxxxx Linker V03.00 + NoICE + sdld,  page 9.
 
 Files Linked                              [ module(s) ]
