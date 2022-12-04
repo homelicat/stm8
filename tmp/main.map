@@ -8,7 +8,7 @@ Area                                    Addr        Size        Decimal Bytes (A
       Value  Global                              Global Defined In Module
       -----  --------------------------------   ------------------------
      FFFFFFFF  s_SSEG                          
-     00000000  .__.ABS.                           
+     00000000  .__.ABS.                           main
      00000000  l_CABS                          
      00000000  l_CONST                         
      00000000  l_DABS                          
@@ -25,7 +25,7 @@ Area                                    Addr        Size        Decimal Bytes (A
      0000001A  l_INITIALIZED                   
      0000001A  l_INITIALIZER                   
      00000043  l_HOME                          
-     0000022D  l_CODE                          
+     00000070  l_CODE                          
      00008000  s_HOME                          
      00008043  s_GSINIT                        
      0000805D  s_GSFINAL                       
@@ -106,32 +106,18 @@ Hexadecimal  [32-Bits]
 
 Area                                    Addr        Size        Decimal Bytes (Attributes)
 --------------------------------        ----        ----        ------- ----- ------------
-CODE                                0000807A    0000022D =         557. bytes (REL,CON)
+CODE                                0000807A    00000070 =         112. bytes (REL,CON)
 
       Value  Global                              Global Defined In Module
       -----  --------------------------------   ------------------------
      0000807A  _rst_get                           main
-     0000807F  _gpio_cfg                          main
-     000080FC  _gpio_set                          main
-     0000812B  _gpio_get                          main
-     00008153  _uart_cfg                          main
-     000081C9  _uart_check                        main
-     000081D7  _uart_recv                         main
-     000081DD  _uart_send                         main
-     000081E8  _tim2_update                       main
-     000081FA  _main                              main
-     0000824D  __divulong                         
-
+     0000807F  _tim2_update                       main
+     00008091  _main                              main
 ASxxxx Linker V03.00 + NoICE + sdld,  page 9.
 
 Files Linked                              [ module(s) ]
 
 tmp/main.rel                              [ main ]
-
-
-Libraries Linked                          [ object file ]
-
-/usr/bin/../share/sdcc/lib/stm8/stm8.lib  [ _divulong.rel ]
 
 ASxxxx Linker V03.00 + NoICE + sdld,  page 10.
 

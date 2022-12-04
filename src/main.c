@@ -23,8 +23,10 @@ void main()
 	TIM2->ARRL=125;
 	TIM2->IER|=TIM_IER_UIE;
 	TIM2->CR1|=TIM_CR1_CEN;
-	uart_cfg(9600,0,UART_CR2_TEN|UART_CR2_REN,0,0,0,0,0);
-	gpio_cfg(GPIO_B,5,GPIO_OUT);
+	UART_BAUD(9600);
+	UART_TEN();
+	UART_REN();
+	GPIO_OUT(GPIO_B,5);
 	int_all();
 	while(1)
 	{

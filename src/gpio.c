@@ -1,11 +1,13 @@
-#define GPIO_OUT (1<<0)
-#define GPIO_IN 0
-#define GPIO_PULLUP (1<<1)
-#define GPIO_FLOAT 0
-#define GPIO_FAST (1<<2)
-#define GPIO_SLOW 0
-#define GPIO_INT (1<<2)
-#define GPIO_NOINT 0
+#define GPIO_OUT(port,pin) port->DDR|=1<<pin
+#define GPIO_IN(port,pin) port->DDR&=~(1<<pin)
+#define GPIO_PULLUP(port,pin) port->CR1|=1<<pin
+#define GPIO_FLOAT(port,pin) port->CR1&=~(1<<pin)
+#define GPIO_FAST(port,pin) port->CR2|=1<<pin
+#define GPIO_SLOW(port,pin) port->CR2&=~(1<<pin)
+#define GPIO_INT(port,pin) port->CR2|=1<<pin
+#define GPIO_NOINT(port,pin) port->CR2&=~(1<<pin)
+#define GPIO_SET(port,pin,state) port->ODR ^=(port->ODR)^((state>0)<<pin)
+#define GPIO_GET(port,pin) ((port->IDR&(1<<pin))>0)
 
 struct PORT
 {
@@ -20,23 +22,3 @@ struct PORT *GPIO_A = 0x5000;
 struct PORT *GPIO_B = 0x5005;
 struct PORT *GPIO_C = 0x500a;
 struct PORT *GPIO_D = 0x500f;
-
-// configure pin(0-7) of port (struct) by cfg byte made by "or" of defines
-void gpio_cfg(struct PORT * port, uint8_t pin, uint8_t cfg)
-{
-	port->DDR |= ((cfg&(1<<0))>0)<<pin;
-	port->CR1 |= ((cfg&(1<<1))>0)<<pin;
-	port->CR2 |= ((cfg&(1<<2))>0)<<pin;
-}
-
-// set pin(0-7) of port(struct) state(bool)
-void gpio_set(struct PORT * port, uint8_t pin, uint8_t state)
-{
-	port->ODR ^= (port->ODR)^((state>0)<<pin);
-}
-
-// return pin(0-7) of port(struct) state(bool)
-uint8_t gpio_get(struct PORT * port, uint8_t pin)
-{
-	return ((port->IDR&(1<<pin))>0);
-}

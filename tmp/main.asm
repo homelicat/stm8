@@ -10,13 +10,6 @@
 ;--------------------------------------------------------
 	.globl _main
 	.globl _tim2_update
-	.globl _uart_send
-	.globl _uart_recv
-	.globl _uart_check
-	.globl _uart_cfg
-	.globl _gpio_get
-	.globl _gpio_set
-	.globl _gpio_cfg
 	.globl _rst_get
 	.globl _millis
 	.globl _I2C
@@ -156,312 +149,6 @@ _rst_get:
 	ld	a, (x)
 ;	src/core.c: 13: }
 	ret
-;	src/gpio.c: 25: void gpio_cfg(struct PORT * port, uint8_t pin, uint8_t cfg)
-;	-----------------------------------------
-;	 function gpio_cfg
-;	-----------------------------------------
-_gpio_cfg:
-	sub	sp, #6
-;	src/gpio.c: 27: port->DDR |= ((cfg&(1<<0))>0)<<pin;
-	ldw	y, (0x09, sp)
-	ldw	(0x01, sp), y
-	ldw	x, y
-	incw	x
-	incw	x
-	ldw	(0x05, sp), x
-	ld	a, (x)
-	ld	yl, a
-	ld	a, (0x0c, sp)
-	srl	a
-	jrnc	00103$
-	clrw	x
-	incw	x
-	.byte 0x21
-00103$:
-	clrw	x
-00104$:
-	ld	a, (0x0b, sp)
-	ld	(0x03, sp), a
-	jreq	00126$
-00125$:
-	exg	a, xl
-	sll	a
-	exg	a, xl
-	dec	a
-	jrne	00125$
-00126$:
-	ld	a, yl
-	pushw	x
-	or	a, (2, sp)
-	popw	x
-	ldw	x, (0x05, sp)
-	ld	(x), a
-;	src/gpio.c: 28: port->CR1 |= ((cfg&(1<<1))>0)<<pin;
-	ldw	x, (0x01, sp)
-	addw	x, #0x0003
-	ldw	(0x04, sp), x
-	ld	a, (x)
-	ld	(0x06, sp), a
-	ld	a, (0x0c, sp)
-	bcp	a, #0x02
-	jreq	00105$
-	clrw	x
-	incw	x
-	.byte 0x21
-00105$:
-	clrw	x
-00106$:
-	ld	a, (0x03, sp)
-	jreq	00129$
-00128$:
-	exg	a, xl
-	sll	a
-	exg	a, xl
-	dec	a
-	jrne	00128$
-00129$:
-	ld	a, (0x06, sp)
-	pushw	x
-	or	a, (2, sp)
-	popw	x
-	ldw	x, (0x04, sp)
-	ld	(x), a
-;	src/gpio.c: 29: port->CR2 |= ((cfg&(1<<2))>0)<<pin;
-	ldw	x, (0x01, sp)
-	addw	x, #0x0004
-	ldw	(0x05, sp), x
-	ld	a, (x)
-	ld	(0x04, sp), a
-	ld	a, (0x0c, sp)
-	bcp	a, #0x04
-	jreq	00107$
-	clrw	x
-	incw	x
-	.byte 0x21
-00107$:
-	clrw	x
-00108$:
-	ld	a, (0x03, sp)
-	jreq	00132$
-00131$:
-	exg	a, xl
-	sll	a
-	exg	a, xl
-	dec	a
-	jrne	00131$
-00132$:
-	ld	a, (0x04, sp)
-	pushw	x
-	or	a, (2, sp)
-	popw	x
-	ldw	x, (0x05, sp)
-	ld	(x), a
-;	src/gpio.c: 30: }
-	addw	sp, #6
-	ret
-;	src/gpio.c: 33: void gpio_set(struct PORT * port, uint8_t pin, uint8_t state)
-;	-----------------------------------------
-;	 function gpio_set
-;	-----------------------------------------
-_gpio_set:
-	sub	sp, #3
-;	src/gpio.c: 35: port->ODR ^= (port->ODR)^((state>0)<<pin);
-	ldw	x, (0x06, sp)
-	ldw	(0x01, sp), x
-	ld	a, (x)
-	ld	yl, a
-	ld	(0x03, sp), a
-	exg	a, yl
-	tnz	(0x09, sp)
-	jreq	00103$
-	clrw	x
-	incw	x
-	.byte 0x21
-00103$:
-	clrw	x
-00104$:
-	ld	a, (0x08, sp)
-	jreq	00112$
-00111$:
-	exg	a, xl
-	sll	a
-	exg	a, xl
-	dec	a
-	jrne	00111$
-00112$:
-	ld	a, (0x03, sp)
-	pushw	x
-	xor	a, (2, sp)
-	popw	x
-	ldw	x, y
-	pushw	x
-	xor	a, (2, sp)
-	popw	x
-	ldw	x, (0x01, sp)
-	ld	(x), a
-;	src/gpio.c: 36: }
-	addw	sp, #3
-	ret
-;	src/gpio.c: 39: uint8_t gpio_get(struct PORT * port, uint8_t pin)
-;	-----------------------------------------
-;	 function gpio_get
-;	-----------------------------------------
-_gpio_get:
-;	src/gpio.c: 41: return ((port->IDR&(1<<pin))>0);
-	ldw	x, (0x03, sp)
-	ld	a, (0x1, x)
-	ld	yl, a
-	ld	a, (0x05, sp)
-	clrw	x
-	incw	x
-	tnz	a
-	jreq	00104$
-00103$:
-	sllw	x
-	dec	a
-	jrne	00103$
-00104$:
-	clr	a
-	pushw	x
-	and	a, (1, sp)
-	popw	x
-	ld	xh, a
-	pushw	x
-	ld	a, yl
-	and	a, (2, sp)
-	popw	x
-	ld	xl, a
-	cpw	x, #0x0000
-	jrsgt	00105$
-	clr	a
-	ret
-00105$:
-	ld	a, #0x01
-;	src/gpio.c: 42: }
-	ret
-;	src/uart.c: 66: void uart_cfg(int baud, uint8_t cr1, uint8_t cr2, uint8_t cr3, uint8_t cr4, uint8_t cr5, uint8_t gt, uint8_t prescale)
-;	-----------------------------------------
-;	 function uart_cfg
-;	-----------------------------------------
-_uart_cfg:
-	sub	sp, #4
-;	src/uart.c: 68: UART->CR1 = cr1;
-	ldw	x, _UART+0
-	ld	a, (0x09, sp)
-	ld	(0x0004, x), a
-;	src/uart.c: 69: UART->CR2 = cr2;
-	ldw	x, _UART+0
-	ld	a, (0x0a, sp)
-	ld	(0x0005, x), a
-;	src/uart.c: 70: UART->CR3 = cr3;
-	ldw	x, _UART+0
-	ld	a, (0x0b, sp)
-	ld	(0x0006, x), a
-;	src/uart.c: 71: UART->CR4 = cr4;
-	ldw	x, _UART+0
-	ld	a, (0x0c, sp)
-	ld	(0x0007, x), a
-;	src/uart.c: 72: UART->CR5 = cr5;
-	ldw	x, _UART+0
-	ld	a, (0x0d, sp)
-	ld	(0x0008, x), a
-;	src/uart.c: 73: UART->GTR = gt;
-	ldw	x, _UART+0
-	ld	a, (0x0e, sp)
-	ld	(0x0009, x), a
-;	src/uart.c: 74: UART->PSCR = prescale;
-	ldw	x, _UART+0
-	ld	a, (0x0f, sp)
-	ld	(0x000a, x), a
-;	src/uart.c: 75: uint16_t div = F_MASTER/baud;
-	ldw	y, (0x07, sp)
-	clrw	x
-	tnzw	y
-	jrpl	00103$
-	decw	x
-00103$:
-	pushw	y
-	pushw	x
-	push	#0x00
-	push	#0x24
-	push	#0xf4
-	push	#0x00
-	call	__divulong
-	addw	sp, #8
-	exgw	x, y
-;	src/uart.c: 76: UART->BRR2 = ((div & 0xF000)>>8)|(div & 0x000F);
-	ldw	x, _UART+0
-	addw	x, #0x0003
-	ldw	(0x01, sp), x
-	ldw	x, y
-	clr	(0x04, sp)
-	ld	a, xh
-	and	a, #0xf0
-	clrw	x
-	ld	xl, a
-	ld	a, yl
-	and	a, #0x0f
-	pushw	x
-	or	a, (2, sp)
-	popw	x
-	ldw	x, (0x01, sp)
-	ld	(x), a
-;	src/uart.c: 77: UART->BRR1 = (div >> 4) & 0x00FF;
-	ldw	x, _UART+0
-	incw	x
-	incw	x
-	ld	a, #0x10
-	div	y, a
-	ld	a, yl
-	ld	(x), a
-;	src/uart.c: 78: }
-	addw	sp, #4
-	ret
-;	src/uart.c: 81: uint8_t uart_check()
-;	-----------------------------------------
-;	 function uart_check
-;	-----------------------------------------
-_uart_check:
-;	src/uart.c: 83: return (UART->SR&UART_SR_RXNE)>0;
-	ldw	x, _UART+0
-	ld	a, (x)
-	bcp	a, #0x20
-	jreq	00103$
-	clrw	x
-	incw	x
-	.byte 0x21
-00103$:
-	clrw	x
-00104$:
-	ld	a, xl
-;	src/uart.c: 84: }
-	ret
-;	src/uart.c: 87: uint8_t uart_recv()
-;	-----------------------------------------
-;	 function uart_recv
-;	-----------------------------------------
-_uart_recv:
-;	src/uart.c: 89: return UART->DR;
-	ldw	x, _UART+0
-	ld	a, (0x1, x)
-;	src/uart.c: 90: }
-	ret
-;	src/uart.c: 93: void uart_send(uint8_t data)
-;	-----------------------------------------
-;	 function uart_send
-;	-----------------------------------------
-_uart_send:
-;	src/uart.c: 95: while(!((UART->SR)&UART_SR_TXE));
-00101$:
-	ldw	x, _UART+0
-	ld	a, (x)
-	jrpl	00101$
-;	src/uart.c: 96: UART->DR = data;
-	incw	x
-	ld	a, (0x03, sp)
-	ld	(x), a
-;	src/uart.c: 97: }
-	ret
 ;	src/main.c: 12: void tim2_update(void) __interrupt(13)
 ;	-----------------------------------------
 ;	 function tim2_update
@@ -511,31 +198,42 @@ _main:
 	ld	a, (x)
 	or	a, #0x01
 	ld	(x), a
-;	src/main.c: 26: uart_cfg(9600,0,UART_CR2_TEN|UART_CR2_REN,0,0,0,0,0);
-	push	#0x00
-	push	#0x00
-	push	#0x00
-	push	#0x00
-	push	#0x00
-	push	#0x0c
-	push	#0x00
-	push	#0x80
-	push	#0x25
-	call	_uart_cfg
-	addw	sp, #9
-;	src/main.c: 27: gpio_cfg(GPIO_B,5,GPIO_OUT);
-	push	#0x01
-	push	#0x05
-	push	_GPIO_B+1
-	push	_GPIO_B+0
-	call	_gpio_cfg
-	addw	sp, #4
-;	src/main.c: 28: int_all();
+;	src/main.c: 26: UART_BAUD(9600);
+	ldw	x, _UART+0
+	ld	a, #0x02
+	ld	(0x0003, x), a
+	ldw	x, _UART+0
+	incw	x
+	incw	x
+	ld	a, #0x68
+	ld	(x), a
+	ldw	x, _UART+0
+;	src/main.c: 27: UART_TEN();
+	addw	x, #0x0005
+	ld	a, (x)
+	or	a, #0x08
+	ld	(x), a
+;	src/main.c: 26: UART_BAUD(9600);
+	ldw	x, _UART+0
+;	src/main.c: 27: UART_TEN();
+	addw	x, #0x0005
+;	src/main.c: 28: UART_REN();
+	ld	a, (x)
+	or	a, #0x04
+	ld	(x), a
+;	src/main.c: 29: GPIO_OUT(GPIO_B,5);
+	ldw	x, _GPIO_B+0
+	incw	x
+	incw	x
+	ld	a, (x)
+	or	a, #0x20
+	ld	(x), a
+;	src/main.c: 30: int_all();
 	rim
-;	src/main.c: 29: while(1)
+;	src/main.c: 31: while(1)
 00102$:
 	jra	00102$
-;	src/main.c: 33: }
+;	src/main.c: 35: }
 	ret
 	.area CODE
 	.area CONST
